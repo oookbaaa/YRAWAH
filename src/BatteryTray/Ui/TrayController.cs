@@ -21,6 +21,8 @@ public sealed class TrayController : IDisposable
     private readonly ReadingService _service;
     private readonly Forms.NotifyIcon _tray;
     private PanelWindow _panel;
+    /// <summary>YRAWAH: Ctrl+Alt+B abre e fecha o painel.</summary>
+    private HotKey? _hotKey;
     private readonly WidgetWindow _widget;
     private readonly HashSet<string> _alerted = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dispatcher _ui;
@@ -118,6 +120,9 @@ public sealed class TrayController : IDisposable
             _service.LiveValueChanged += () => _ui.BeginInvoke(() => RefreshLive(passive: true, bluetooth: false));
             _bluetoothTimer.Tick += (_, _) => RefreshLive(passive: false, bluetooth: true, notify: true);
             _bluetoothTimer.Start();
+
+            try { _hotKey = new HotKey(() => _panel.Toggle()); }
+            catch (Exception ex) { Log.Error("Atalho", ex); }
 
             try
             {
@@ -870,6 +875,7 @@ public sealed class TrayController : IDisposable
         _devicesSettle.Stop();
         _linkSettle.Stop();
         _links.Dispose();
+        _hotKey?.Dispose();
         _watch?.Dispose();
         try { _service.Dispose(); } catch { }
         try { _tray.Dispose(); } catch { }

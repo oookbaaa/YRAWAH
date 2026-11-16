@@ -25,7 +25,7 @@ está em **beta**.
 
 ## O que ele tem
 
-- **Painel**: clique no ícone da bandeja para ver cada aparelho conectado, do
+- **Painel**: clique no ícone da bandeja, ou aperte **Ctrl+Alt+B** em qualquer lugar, para ver cada aparelho conectado, do
   mais fraco ao mais forte.
 - **Widget de borda**: anéis de bateria na borda da tela. Esconde sozinho e
   some quando um app está em tela cheia.

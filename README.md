@@ -25,7 +25,8 @@ battery your wireless devices have left. It is free, open source and in
 
 ## What you get
 
-- **Panel**: click the tray icon to see every connected device, weakest first.
+- **Panel**: click the tray icon, or press **Ctrl+Alt+B** anywhere, to see every
+  connected device, weakest first.
 - **Edge widget**: battery rings on the edge of the screen. It hides itself and
   gets out of the way of full-screen apps.
 - **Tray icon**: shows at a glance whether anything is running low; hover to
