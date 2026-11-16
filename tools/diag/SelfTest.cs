@@ -143,6 +143,12 @@ internal static class SelfTest
         // A checagem que impede o pior erro: por Bluetooth vem 78 bytes com o
         // byte 53 zerado -- sem o teste de comprimento isso viraria "5%".
         Null("dualsense relatorio de bluetooth rejeitado", DualSenseProvider.ParseStatus(BluetoothReport())?.Percent);
+        // YRAWAH: o 0x31 completo do Bluetooth (78 bytes, status no byte 54) vale.
+        var ds31 = new byte[78]; ds31[0] = 0x31; ds31[54] = 0x14;
+        Eq("dualsense bluetooth 0x31 45%", 45, DualSenseProvider.ParseStatus(ds31)?.Percent);
+        Check("dualsense bluetooth 0x31 carregando", DualSenseProvider.ParseStatus(ds31)?.State == DualSenseProvider.ChargeState.Charging);
+        var ds31Short = new byte[64]; ds31Short[0] = 0x31; ds31Short[54] = 0x14;
+        Null("dualsense 0x31 com tamanho errado rejeitado", DualSenseProvider.ParseStatus(ds31Short)?.Percent);
 
         // --- XInput: WIRED tem de ser descartado (8BitDo reporta WIRED/FULL falso) ---
         var wired = XInputProvider.MapBattery(XInputNative.BATTERY_TYPE_WIRED, 3, 0x2DC8, 0x310A);

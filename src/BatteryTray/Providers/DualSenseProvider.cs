@@ -47,6 +47,14 @@ public sealed class DualSenseProvider : IBatteryProvider
 
     private const int StatusByte = 53;
 
+    /// <summary>
+    /// YRAWAH: por Bluetooth, o relatorio completo 0x31 (78 bytes, dados a
+    /// partir do byte 2, entao o status fica no 54). So chega se alguem (Steam,
+    /// um jogo) ja pos o controle no modo completo; aqui so se escuta.
+    /// </summary>
+    private const int BtInputLen = 78;
+    private const int BtStatusByte = 54;
+
     private static readonly TimeSpan WaitForReport = TimeSpan.FromSeconds(2);
 
     public string Name => "DualSense";
@@ -70,7 +78,15 @@ public sealed class DualSenseProvider : IBatteryProvider
             .ToList();
 
         if (usb.Count == 0)
-            return BatteryReading.NoData(L.T("por Bluetooth o controle não informa bateria; ligue no cabo", "over Bluetooth the controller doesn’t report battery; plug in the cable"));
+        {
+            var bt = ctx.Find(Vid, Pid)
+                .Where(c => c.UsagePage == GamepadUsagePage && c.Usage == GamepadUsage && c.InputLen == BtInputLen
+                            && !HidInventory.IsSystemReserved(c.UsagePage, c.Usage))
+                .ToList();
+            if (bt.Count == 0)
+                return BatteryReading.NoData(L.T("por Bluetooth o controle não informa bateria; ligue no cabo", "over Bluetooth the controller doesn’t report battery; plug in the cable"));
+            return ReadBluetooth(bt[0]);
+        }
 
         try
         {
@@ -99,6 +115,36 @@ public sealed class DualSenseProvider : IBatteryProvider
         }
     }
 
+    /// <summary>So escuta: o 0x31 chega a centenas por segundo quando o modo completo esta ligado.</summary>
+    private static BatteryReading ReadBluetooth(HidCollection pad)
+    {
+        try
+        {
+            var report = HidOneShot.WaitForReport(pad, r => ParseStatus(r) is not null, TimeSpan.FromSeconds(1));
+            if (report is null)
+                return BatteryReading.NoData(L.T(
+                    "por Bluetooth a bateria só aparece com o Steam ou um jogo usando o controle, ou no cabo",
+                    "over Bluetooth the battery shows only while Steam or a game is using the controller, or on cable"));
+            return ToReading(ParseStatus(report)!.Value, null);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("DualSense.Bluetooth", ex);
+            return BatteryReading.Error(ex.Message);
+        }
+    }
+
+    private static BatteryReading ToReading(DualSenseStatus status, string? extra)
+    {
+        string? charge = status.State switch
+        {
+            ChargeState.Charging => L.T("carregando", "charging"),
+            ChargeState.Full => L.T("carga completa", "fully charged"),
+            _ => null,
+        };
+        return BatteryReading.Percentage(status.Percent, extra, chargeText: charge);
+    }
+
     internal enum ChargeState
     {
         Discharging = 0,
@@ -115,10 +161,10 @@ public sealed class DualSenseProvider : IBatteryProvider
     /// </summary>
     internal static DualSenseStatus? ParseStatus(byte[] r)
     {
-        if (r.Length != UsbInputLen) return null;
-        if (r[0] != 0x01) return null;
-
-        byte status = r[StatusByte];
+        byte status;
+        if (r.Length == UsbInputLen && r[0] == 0x01) status = r[StatusByte];
+        else if (r.Length == BtInputLen && r[0] == 0x31) status = r[BtStatusByte];
+        else return null; // inclui o 0x01 curto do Bluetooth, que nao traz bateria
         int level = status & 0x0F;
         int state = (status & 0xF0) >> 4;
 
