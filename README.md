@@ -1,6 +1,6 @@
-> **YRAWAH** is a renamed build of [Joule](https://github.com/DillanCidral/Joule) by Dillan Cidral, licensed AGPL-3.0 (see `LICENSE`). Maintained by OKBA. Changes from Joule 0.2.0 (2026-11-16): app renamed to YRAWAH; the auto-updater is switched off (the app makes no network requests); the original author's contact details and donation link are removed. Anyone who receives the app is entitled to this source code.
 
-<h1 align="center"><img src="docs/images/capa.png" alt="YRAWAH" width="100%"></h1>
+
+
 
 <p align="center"><strong>Battery for your wireless mouse, headset, controller and keyboard, in the Windows tray.</strong></p>
 
