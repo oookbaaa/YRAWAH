@@ -46,8 +46,8 @@ battery question once per reading (see [SECURITY.md](../SECURITY.md)).
 
 ## Known gaps
 
-- **Logitech**: HID++ 1.0 devices, the "Centurion" headsets (G PRO X 2
-  Lightspeed, G522, Astro A50), Logitech on cable.
+- **Logitech**: HID++ 1.0 devices, the other "Centurion" headsets (G522,
+  Astro A50), Logitech on cable. The G PRO X 2 LIGHTSPEED is read.
 - **Razer**: other headsets.
 - **SteelSeries**: Arctis 9, Arctis Pro Wireless.
 - **HyperX**: other Pulsefire mice, wireless keyboards.

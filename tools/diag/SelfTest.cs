@@ -400,6 +400,23 @@ internal static class SelfTest
         Check("logi outro slot nao casa", LogitechProvider.MatchReply(ask, B(0x11, 0x03, 0x00, 0x0D, 0x06, 0x00, 0x03)) is null);
         Check("logi notificacao (swid 0) nao casa", LogitechProvider.MatchReply(ask, B(0x11, 0x02, 0x00, 0x00, 0x06, 0x00, 0x03)) is null);
         Eq("logi 1004 percentual", 64, LogitechProvider.ParseUnified(B(64, 0x04, 0x00, 0x00)).Percent);
+        // Centurion (G PRO X 2 LIGHTSPEED), bytes como no HeadsetControl.
+        Check("centurion pergunta da ponte", LogitechCenturion.DirectFrame(0x00, 0x00, 0x00, 0x03).Take(7).SequenceEqual(B(0x51, 0x05, 0x00, 0x00, 0x01, 0x00, 0x03)));
+        Check("centurion pergunta pela ponte", LogitechCenturion.BridgeFrame(0x02, 0x00, 0x00, 0x01, 0x04).Take(12).SequenceEqual(B(0x51, 0x0A, 0x00, 0x02, 0x11, 0x00, 0x05, 0x00, 0x00, 0x01, 0x01, 0x04)));
+        Check("centurion quadro tem 64 bytes", LogitechCenturion.BridgeFrame(0x02, 0x05, 0x00).Length == 64);
+        var cAck = B(0x51, 0x05, 0x00, 0x02, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00);
+        Check("centurion ack nao e' resposta", LogitechCenturion.Classify(cAck, 0x02, 0x05) == LogitechCenturion.BridgeKind.Ack);
+        var cAns = B(0x51, 0x0B, 0x00, 0x02, 0x10, 0x00, 0x06, 0x00, 0x05, 0x01, 0x4B, 0x00, 0x02);
+        Check("centurion resposta da bateria", LogitechCenturion.Classify(cAns, 0x02, 0x05) == LogitechCenturion.BridgeKind.Answer);
+        Check("centurion parametros", LogitechCenturion.BridgeParams(cAns).SequenceEqual(B(0x4B, 0x00, 0x02)));
+        Check("centurion 75% carregando", LogitechCenturion.ParseBattery(B(75, 0x00, 0x02)) is { Percent: 75, ChargeText: "carregando" });
+        Check("centurion outro recurso nao casa", LogitechCenturion.Classify(cAns, 0x02, 0x06) == LogitechCenturion.BridgeKind.Other);
+        Check("centurion fone desligou", LogitechCenturion.Classify(B(0x51, 0x05, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00), 0x02, 0x05) == LogitechCenturion.BridgeKind.Disconnected);
+        Check("centurion ponte recusou (sem fone)", LogitechCenturion.Classify(B(0x51, 0x05, 0x00, 0xFF, 0x02, 0x11, 0x00, 0x00), 0x02, 0x05) == LogitechCenturion.BridgeKind.Rejected);
+        Check("centurion fone recusou o recurso", LogitechCenturion.Classify(B(0x51, 0x0B, 0x00, 0x02, 0x10, 0x00, 0x06, 0x00, 0xFF, 0x05, 0x00), 0x02, 0x05) == LogitechCenturion.BridgeKind.Rejected);
+        Check("centurion valor acima de 100 nao vale", LogitechCenturion.ParseBattery(B(0xC8, 0x00, 0x00)) is null);
+        var cOld = new byte[64]; cOld[0] = 0x51; cOld[1] = 0x0B; cOld[8] = 0x04; cOld[10] = 60; cOld[12] = 0x01;
+        Check("centurion antigo 60%", LogitechCenturion.IsLegacyBattery(cOld) && LogitechCenturion.ParseLegacy(cOld) is { Percent: 60, ChargeText: null });
         Check("logi 1004 carregando", LogitechProvider.ParseUnified(B(64, 0x04, 0x01, 0x00)).ChargeText == "carregando");
         Check("logi 1004 so faixa", LogitechProvider.ParseUnified(B(0, 0x02, 0x00, 0x00)).Level == "LOW");
         Check("logi 1004 sem nada", LogitechProvider.ParseUnified(B(0, 0, 0, 0)).Status == ReadingStatus.NoData);

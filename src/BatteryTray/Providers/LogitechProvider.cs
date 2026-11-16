@@ -65,12 +65,13 @@ public sealed class LogitechProvider : IStandaloneProvider
 
     public string Name => "Logitech";
 
-    public bool Handles(ushort vid, ushort pid) => vid == Vid && (Receivers.ContainsKey(pid) || Headsets.ContainsKey(pid));
+    public bool Handles(ushort vid, ushort pid) => vid == Vid && (Receivers.ContainsKey(pid) || Headsets.ContainsKey(pid) || LogitechCenturion.Models.ContainsKey(pid));
 
     public IEnumerable<DeviceEntry> Discover(IReadOnlyList<HidCollection> collections)
     {
         var found = new List<DeviceEntry>();
         found.AddRange(ReadHeadsets(collections));
+        found.AddRange(LogitechCenturion.Read(collections));
         var mine = collections.Where(c => c.Vid == Vid && Receivers.ContainsKey(c.Pid) && HidRequest.IsVendor(c)).ToList();
         if (mine.Count == 0) return found;
 
