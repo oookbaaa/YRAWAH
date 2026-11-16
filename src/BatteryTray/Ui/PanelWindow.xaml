@@ -553,10 +553,12 @@
                                RenderOptions.BitmapScalingMode="HighQuality" />
                         <TextBlock Text="{Binding Glyph}" Visibility="{Binding GlyphVisibility}" Opacity="{Binding ContentOpacity}"
                                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                                   Foreground="{DynamicResource Text.Primary}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Border Visibility="{Binding MutedBadge}" Width="13" Height="13" CornerRadius="7"
                                 HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="{DynamicResource Card.Fill}">
                             <TextBlock Text="&#xE74F;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="9"
+                                       Foreground="{DynamicResource Text.Primary}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </Grid>
