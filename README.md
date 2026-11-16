@@ -14,7 +14,7 @@
 <p align="center"><img src="docs/images/bandeira-us.png" alt="" height="14"> <strong>English</strong> · <a href="README.pt-BR.md"><img src="docs/images/bandeira-br.png" alt="" height="14"> Português</a></p>
 
 <p align="center">
-  <a href="https://github.com/oookbaaa/YRAWAH/releases/latest"><img src="https://img.shields.io/badge/Download_for_Windows-FFC21F?style=for-the-badge" alt="Download for Windows" height="40"></a>
+  <a href="https://github.com/oookbaaa/YRAWAH/releases/latest/download/YRAWAH-Setup.exe"><img src="https://img.shields.io/badge/Download_for_Windows-FFC21F?style=for-the-badge" alt="Download for Windows" height="40"></a>
 </p>
 
 <p align="center"><img src="docs/images/yrawah.png" alt="YRAWAH panel and edge widget, dark theme" width="85%"></p>
@@ -45,10 +45,13 @@ battery your wireless devices have left. It is free, open source and in
 
 ## Download
 
-Get the portable zip from the
+Click **Download for Windows** above to get `YRAWAH-Setup.exe`, then run it. It
+installs for your user only (no administrator rights), adds YRAWAH to the Start
+menu and starts it with Windows. Remove it from *Installed apps*.
+
+Prefer no installation? Get `YRAWAH-0.3.0-portable.zip` from the
 [Releases page](https://github.com/oookbaaa/YRAWAH/releases), unzip it and run `YRAWAH.exe`.
 
-- No administrator rights and no installation needed.
 - The app is not digitally signed, so Windows SmartScreen will warn you.
   Click **More info**, then **Run anyway**.
 - YRAWAH does not update itself and makes no network requests.

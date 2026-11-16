@@ -14,7 +14,7 @@
 <p align="center"><img src="docs/images/bandeira-br.png" alt="" height="14"> <strong>Português</strong> · <a href="README.md"><img src="docs/images/bandeira-us.png" alt="" height="14"> English</a></p>
 
 <p align="center">
-  <a href="https://github.com/oookbaaa/YRAWAH/releases/latest"><img src="https://img.shields.io/badge/Baixar_para_Windows-FFC21F?style=for-the-badge" alt="Baixar para Windows" height="40"></a>
+  <a href="https://github.com/oookbaaa/YRAWAH/releases/latest/download/YRAWAH-Setup.exe"><img src="https://img.shields.io/badge/Baixar_para_Windows-FFC21F?style=for-the-badge" alt="Baixar para Windows" height="40"></a>
 </p>
 
 <p align="center"><img src="docs/images/yrawah.png" alt="Painel e widget de borda do YRAWAH, tema escuro" width="85%"></p>
@@ -44,10 +44,13 @@ está em **beta**.
 
 ## Baixar
 
-Baixe o zip portátil na
+Clique em **Baixar para Windows** acima para baixar o `YRAWAH-Setup.exe` e abra o arquivo.
+Ele instala só para o seu usuário (sem administrador), coloca o YRAWAH no menu Iniciar
+e o abre junto com o Windows. Para remover, use *Aplicativos instalados*.
+
+Prefere sem instalar? Baixe o `YRAWAH-0.3.0-portable.zip` na
 [página de Releases](https://github.com/oookbaaa/YRAWAH/releases), descompacte e abra o `YRAWAH.exe`.
 
-- Não precisa de administrador nem de instalação.
 - O app não tem assinatura digital, então o Windows SmartScreen avisa.
   Clique em **Mais informações** e depois em **Executar assim mesmo**.
 - O YRAWAH não se atualiza sozinho e não usa a rede.
