@@ -255,15 +255,67 @@ internal static class CoreAudio
     private static string? ProcessPath(uint pid)
     {
         IntPtr h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
-        if (h == IntPtr.Zero) return null;
+        if (h == IntPtr.Zero) return ImagePathWithoutOpening(pid); // elevated app (e.g. MSI LEDKeeper2): access denied
         try
         {
             var sb = new StringBuilder(1024);
             uint size = (uint)sb.Capacity;
-            return QueryFullProcessImageNameW(h, 0, sb, ref size) ? sb.ToString() : null;
+            return QueryFullProcessImageNameW(h, 0, sb, ref size) ? sb.ToString() : ImagePathWithoutOpening(pid);
         }
         finally { CloseHandle(h); }
     }
+
+    /// <summary>
+    /// Image path of any process without opening it: NtQuerySystemInformation
+    /// (SystemProcessIdInformation, class 88), the way Task Manager names
+    /// elevated processes. It comes back as \Device\HarddiskVolumeN\...; mapped to a drive letter.
+    /// </summary>
+    private static string? ImagePathWithoutOpening(uint pid)
+    {
+        const int SystemProcessIdInformation = 88;
+        const int BufferBytes = 2048;
+        IntPtr buffer = Marshal.AllocHGlobal(BufferBytes);
+        try
+        {
+            var info = new SystemProcessIdInfo
+            {
+                ProcessId = (IntPtr)pid,
+                ImageName = new UnicodeString { Length = 0, MaximumLength = BufferBytes, Buffer = buffer },
+            };
+            if (NtQuerySystemInformation(SystemProcessIdInformation, ref info, Marshal.SizeOf<SystemProcessIdInfo>(), out _) != 0) return null;
+            string nt = Marshal.PtrToStringUni(info.ImageName.Buffer, info.ImageName.Length / 2);
+            return DosPath(nt);
+        }
+        catch { return null; }
+        finally { Marshal.FreeHGlobal(buffer); }
+    }
+
+    /// <summary>\Device\HarddiskVolume3\Program Files\x.exe -> C:\Program Files\x.exe</summary>
+    private static string? DosPath(string ntPath)
+    {
+        foreach (var drive in Environment.GetLogicalDrives())
+        {
+            string letter = drive.TrimEnd('\\');
+            var target = new StringBuilder(512);
+            if (QueryDosDeviceW(letter, target, target.Capacity) == 0) continue;
+            string device = target.ToString();
+            if (ntPath.StartsWith(device + "\\", StringComparison.OrdinalIgnoreCase))
+                return letter + ntPath[device.Length..];
+        }
+        return null;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct UnicodeString { public ushort Length; public ushort MaximumLength; public IntPtr Buffer; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SystemProcessIdInfo { public IntPtr ProcessId; public UnicodeString ImageName; }
+
+    [DllImport("ntdll.dll")]
+    private static extern int NtQuerySystemInformation(int infoClass, ref SystemProcessIdInfo info, int length, out int returned);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern uint QueryDosDeviceW(string deviceName, StringBuilder target, int max);
 
     private static string? FriendlyName(IMMDevice device)
     {
