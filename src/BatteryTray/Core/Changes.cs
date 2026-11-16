@@ -16,15 +16,21 @@ public static class Changes
 {
     public static readonly Change[] All =
     {
-        new("0.2.0", "M10 3a7 7 0 1 0 7 7M10 3c2 2 3 4.5 3 7s-1 5-3 7c-2-2-3-4.5-3-7s1-5 3-7zM3 10h14",
-            "Em inglês também", "In English too",
-            "O YRAWAH segue o idioma do Windows. Para trocar, vá em Configurações.", "YRAWAH follows the Windows language. To change it, go to Settings."),
-        new("0.2.0", "M10 3.5v9M6.5 9 10 12.5 13.5 9M4 16h12",
-            "Atualizações pelo GitHub", "Updates from GitHub",
-            "As versões novas chegam direto da página oficial do YRAWAH.", "New versions come straight from YRAWAH’s official page."),
-        new("0.2.0", "M10 16.5s-6-3.6-6-8A3.5 3.5 0 0 1 10 6a3.5 3.5 0 0 1 6 2.5c0 4.4-6 8-6 8z",
-            "Resumo depois de atualizar", "Summary after updating",
-            "O que o YRAWAH já fez por você, contado só neste PC.", "What YRAWAH has done for you, counted only on this PC."),
+        new("0.4.0", "M10 3.5v9M6.5 9 10 12.5 13.5 9M4 16h12",
+            "Atualizações no app", "Updates in the app",
+            "Quando sai uma versão nova, o YRAWAH avisa no painel e se atualiza com um clique.", "When a new version is out, YRAWAH tells you in the panel and updates with one click."),
+        new("0.4.0", "M3 7h14v7H3zM6 10h1M9 10h1M12 10h1M6 12h8",
+            "Atalho do seu jeito", "Your own shortcut",
+            "Escolha a tecla que abre o painel em Configurações.", "Choose the key that opens the panel in Settings."),
+        new("0.4.0", "M4 8h3l4-3v10l-4-3H4zM14 7.5a3.5 3.5 0 0 1 0 5",
+            "Mixer de volume", "Volume mixer",
+            "Volume geral e de cada app, direto no painel.", "Master and per-app volume, right in the panel."),
+        new("0.4.0", "M4 13v-2a6 6 0 0 1 12 0v2M4 13h2.5v3.5H4zM13.5 13H16v3.5h-2.5z",
+            "Mais aparelhos", "More devices",
+            "Fone Logitech G PRO X 2 LIGHTSPEED e DualSense por Bluetooth.", "Logitech G PRO X 2 LIGHTSPEED headset and DualSense over Bluetooth."),
+        new("0.4.0", "M10 3v6M6.2 5.5a6 6 0 1 0 7.6 0",
+            "Desligado aparece", "Off devices show",
+            "Mouse e fone desligados ficam apagados no painel, com o último valor e um som.", "Switched-off mice and headsets show dimmed in the panel, with their last value and a sound."),
     };
 
     /// <summary>Novidades mais novas que a versao de antes ("" = veio de antes da tela existir: todas).</summary>

@@ -54,7 +54,8 @@ Prefer no installation? Get `YRAWAH-0.3.0-portable.zip` from the
 
 - The app is not digitally signed, so Windows SmartScreen will warn you.
   Click **More info**, then **Run anyway**.
-- YRAWAH does not update itself and makes no network requests.
+- The installed app checks this page for new versions and offers them in the
+  panel; that is its only network access.
 
 ## Supported devices
 

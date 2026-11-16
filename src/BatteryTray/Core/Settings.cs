@@ -66,6 +66,9 @@ public sealed class Settings
 
     /// <summary>Os cinco toques dos avisos (conectou, achei, nao achei, bateria baixa, desconectou).</summary>
     /// <summary>Mixer de volume no painel (YRAWAH).</summary>
+    [JsonPropertyName("hotKey")]
+    public string HotKey { get; set; } = "Ctrl+Alt+B"; // YRAWAH: atalho que abre o painel; "" = desligado
+
     [JsonPropertyName("showMixer")]
     public bool ShowMixer { get; set; } = true;
 

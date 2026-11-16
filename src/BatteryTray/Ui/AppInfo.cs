@@ -37,8 +37,8 @@ public static class AppInfo
         .GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false)
         .Cast<System.Reflection.AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "YRAWAHTestFeed")?.Value);
 #else
-    // YRAWAH: no updater. Empty = the app never checks or downloads anything from the network.
-    public static readonly string UpdateFeed = "";
+    // YRAWAH: updates from the official repository's GitHub Releases (published, non-prerelease only).
+    public static readonly string UpdateFeed = "https://github.com/oookbaaa/YRAWAH";
 #endif
 
     /// <summary>O Teste so aceita uma pasta local terminada em releases\teste: nada de internet nem de rede. Vazio = sem atualizador.</summary>

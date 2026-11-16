@@ -296,7 +296,11 @@ public partial class WidgetWindow : Window
         bool show = (_settings.WidgetEnabled || _showcase) && _items.Count > 0 && !_fullscreen;
         if (_settings.WidgetEnabled) _fullscreenCheck.Start(); else _fullscreenCheck.Stop();
 
-        if (show && !IsVisible) Show();
+        if (show && !IsVisible)
+        {
+            Show();
+            Motion.Run(RootGrid, OpacityProperty, 0, 1, 320, Motion.Out); // YRAWAH: entra suave, sem piscar
+        }
         else if (!show && IsVisible) Hide();
     }
 
@@ -323,7 +327,7 @@ public partial class WidgetWindow : Window
         System.Windows.Controls.Grid.SetColumn(Card, right ? 1 : 0);
         NoticeTab.CornerRadius = right ? new CornerRadius(8, 0, 0, 8) : new CornerRadius(0, 8, 8, 0);
         NoticeClip.Padding = right ? new Thickness(10, 8, 0, 8) : new Thickness(0, 8, 10, 8);
-        HandleBar.CornerRadius = right ? new CornerRadius(3, 0, 0, 3) : new CornerRadius(0, 3, 3, 0);
+        HandleBar.CornerRadius = right ? new CornerRadius(4, 0, 0, 4) : new CornerRadius(0, 4, 4, 0);
         HandleBar.HorizontalAlignment = right ? HorizontalAlignment.Right : HorizontalAlignment.Left;
         HandleAlert.HorizontalAlignment = right ? HorizontalAlignment.Right : HorizontalAlignment.Left;
         HandleAlert.Margin = right ? new Thickness(0, 0, 7, 0) : new Thickness(7, 0, 0, 0);
@@ -505,8 +509,10 @@ public partial class WidgetWindow : Window
     {
         _gen++;
         double w = Card.ActualWidth > 0 ? Card.ActualWidth : 56;
-        Motion.Run(_cardMove, TranslateTransform.XProperty, _cardMove.X != 0 ? null : w * Edge, 0, 300, Motion.Out);
-        Motion.Run(Card, OpacityProperty, null, 1, 200, Motion.Out);
+        bool fresh = _cardMove.X == 0; // saindo da alca (nao voltando no meio do esconder)
+        // YRAWAH: mais suave: desliza um pouco mais devagar e aparece do transparente.
+        Motion.Run(_cardMove, TranslateTransform.XProperty, fresh ? w * Edge : null, 0, 380, Motion.Out);
+        Motion.Run(Card, OpacityProperty, fresh ? 0 : null, 1, 300, Motion.Out);
     }
 
     /// <summary>Widget volta a ser alca: entra na borda, mais rapido do que saiu.</summary>
@@ -523,6 +529,7 @@ public partial class WidgetWindow : Window
             _cardMove.X = 0;
             Card.BeginAnimation(OpacityProperty, null);
             Card.Opacity = 1;
+            Motion.Run(HandleView, OpacityProperty, 0, 1, 260, Motion.Out); // YRAWAH: a alca volta aparecendo, sem pular
         });
     }
 

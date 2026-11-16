@@ -41,7 +41,10 @@ if ($Canal -eq 'publicar') {
             --token $token --publish --releaseName "YRAWAH $Versao" --tag "v$Versao"
         if ($LASTEXITCODE) { throw "vpk upload falhou ($LASTEXITCODE)" }
     } finally { Pop-Location }
-    & gh release upload "v$Versao" $sums --repo oookbaaa/YRAWAH
+    # YRAWAH: o botao "Download for Windows" do README baixa releases/latest/download/YRAWAH-Setup.exe.
+    $setupCopy = Join-Path $out 'YRAWAH-Setup.exe'
+    Copy-Item (Join-Path $out 'YRAWAHApp-win-Setup.exe') $setupCopy -Force
+    & gh release upload "v$Versao" $sums $setupCopy --repo oookbaaa/YRAWAH --clobber
     if ($LASTEXITCODE) { throw "gh release upload falhou ($LASTEXITCODE)" }
     Write-Host "Publicado: $repo/releases/tag/v$Versao" -ForegroundColor Green
     return
@@ -79,7 +82,7 @@ try {
         --icon (Join-Path $root 'src\BatteryTray\yrawah.ico') --shortcuts StartMenuRoot --outputDir $out `
         --splashImage $splash --splashProgressColor $barra
     if ($LASTEXITCODE) { throw "vpk pack falhou ($LASTEXITCODE)" }
-} finally { Pop-Location; Remove-Item $pub -Recurse -Force -ErrorAction SilentlyContinue }
+} finally { Pop-Location; try { Remove-Item -LiteralPath $pub -Recurse -Force -ErrorAction Stop } catch { } }
 
 # Impressao digital (camada de seguranca, 2026-11-12): vai na pagina da versao, para quem baixa conferir que o arquivo nao foi trocado.
 $sums = Get-ChildItem $out -File | Where-Object { $_.Name -eq "$packId-win-Setup.exe" -or $_.Name -eq "$packId-$Versao-full.nupkg" } |

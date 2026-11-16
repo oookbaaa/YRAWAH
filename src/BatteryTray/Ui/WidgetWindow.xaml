@@ -108,8 +108,9 @@
 
     <Grid x:Name="RootGrid">
         <!-- Esconder sozinho: uma alca fina na cor escolhida (padrao: a do app) (invisivel, ninguem achava o widget), faixa de toque e ponto de alerta. -->
-        <Grid x:Name="HandleView" Visibility="Collapsed" Width="20" Height="160" Background="#01000000">
-            <Border x:Name="HandleBar" Width="5" Height="56" Background="{DynamicResource Accent}" BorderBrush="#24000000" Opacity="0.85" />
+        <!-- YRAWAH: alca maior (7x72, era 5x56) e faixa de toque maior. -->
+        <Grid x:Name="HandleView" Visibility="Collapsed" Width="24" Height="180" Background="#01000000">
+            <Border x:Name="HandleBar" Width="7" Height="72" Background="{DynamicResource Accent}" BorderBrush="#24000000" Opacity="0.85" />
             <Ellipse x:Name="HandleAlert" Width="11" Height="11" VerticalAlignment="Top" Margin="0,0,0,0"
                      Fill="{DynamicResource Level.Alert}" Stroke="#73000000" StrokeThickness="2" Visibility="Collapsed" />
         </Grid>
@@ -156,6 +157,8 @@
             <Grid>
                 <!-- Recolhido: um anel por aparelho, na ordem do painel. -->
                 <ItemsControl x:Name="Rings" Margin="8,10">
+                    <!-- YRAWAH: aneis 15% maiores (escala o desenho inteiro, o arco continua certo). -->
+                    <ItemsControl.LayoutTransform><ScaleTransform ScaleX="1.15" ScaleY="1.15" /></ItemsControl.LayoutTransform>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type ui:RingItem}">
                             <StackPanel ToolTip="{Binding Tooltip}">

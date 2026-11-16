@@ -657,6 +657,20 @@
                             </Button>
                         </StackPanel>
 
+                        <!-- YRAWAH: atualizacao baixada e pronta: aparece no topo da lista. -->
+                        <Border x:Name="UpdateBanner" Margin="8,0,8,6" Padding="12,10" CornerRadius="6" BorderThickness="1"
+                                Background="{DynamicResource Card.Fill}" BorderBrush="{DynamicResource Accent}" Visibility="Collapsed">
+                            <DockPanel>
+                                <Button x:Name="UpdateBannerButton" DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Margin="10,0,0,0" VerticalAlignment="Center"
+                                        AutomationProperties.Name="{ui:Tr 'Reiniciar e atualizar', 'Restart and update'}">
+                                    <TextBlock Text="{ui:Tr 'Atualizar', 'Update'}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Accent.Foreground}" />
+                                </Button>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="UpdateBannerTitle" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Style="{StaticResource Caption}" Text="{ui:Tr 'O YRAWAH reabre sozinho em segundos', 'YRAWAH reopens by itself in seconds'}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
                         <ItemsControl x:Name="ConsentRows" Margin="8,0" ItemTemplate="{StaticResource ConsentRow}" />
                         <ItemsControl x:Name="Rows" Margin="8,0" ItemTemplate="{StaticResource DeviceRow}" />
                         <ItemsControl x:Name="OffRows" Margin="8,0" ItemTemplate="{StaticResource OffRow}" />
@@ -741,6 +755,18 @@
                                     <StackPanel>
                                         <TextBlock Text="{ui:Tr 'Mixer de volume', 'Volume mixer'}" />
                                         <TextBlock Style="{StaticResource Caption}" Text="{ui:Tr 'Volume geral e de cada app, no painel', 'Master and per-app volume, in the panel'}" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Rule}" />
+                                <!-- YRAWAH: atalho para abrir o painel, escolhido pela pessoa. -->
+                                <DockPanel Margin="14,12">
+                                    <Button x:Name="HotKeyButton" DockPanel.Dock="Right" Style="{StaticResource OutlineButton}" MinWidth="96" Margin="10,0,0,0" VerticalAlignment="Center"
+                                            AutomationProperties.Name="{ui:Tr 'Atalho para abrir o painel', 'Shortcut to open the panel'}">
+                                        <TextBlock x:Name="HotKeyText" />
+                                    </Button>
+                                    <StackPanel>
+                                        <TextBlock Text="{ui:Tr 'Atalho do painel', 'Panel shortcut'}" />
+                                        <TextBlock x:Name="HotKeyHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </DockPanel>
                                 <Border Style="{StaticResource Rule}" />

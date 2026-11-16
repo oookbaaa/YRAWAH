@@ -1,4 +1,4 @@
-> O **YRAWAH** é uma cópia renomeada do [Joule](https://github.com/DillanCidral/Joule), de Dillan Cidral, sob a licença AGPL-3.0 (veja `LICENSE`). Mantido por OKBA. Mudanças em relação ao Joule 0.2.0 (2026-11-16): nome trocado para YRAWAH; atualizador desligado (o app não usa a rede); contato e link de apoio do autor original removidos.
+> O **YRAWAH** é uma cópia renomeada do [Joule](https://github.com/DillanCidral/Joule), de Dillan Cidral, sob a licença AGPL-3.0 (veja `LICENSE`). Mantido por OKBA. Mudanças em relação ao Joule 0.2.0 (2026-11-16): nome trocado para YRAWAH; atualizações vêm das releases deste repositório; contato e link de apoio do autor original removidos.
 
 <h1 align="center"><img src="docs/images/capa.png" alt="YRAWAH" width="100%"></h1>
 
@@ -53,7 +53,8 @@ Prefere sem instalar? Baixe o `YRAWAH-0.3.0-portable.zip` na
 
 - O app não tem assinatura digital, então o Windows SmartScreen avisa.
   Clique em **Mais informações** e depois em **Executar assim mesmo**.
-- O YRAWAH não se atualiza sozinho e não usa a rede.
+- O app instalado procura versões novas nesta página e oferece no painel; é o
+  único acesso à rede que ele faz.
 
 ## Aparelhos suportados
 

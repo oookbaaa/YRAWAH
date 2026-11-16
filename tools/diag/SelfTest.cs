@@ -642,7 +642,7 @@ internal static class SelfTest
 
         // Item 4 (2026-11-12): o main so do repositorio oficial; o Teste so da pasta deste PC (decisao do Dillan).
         Check("atualizacao so do repositorio oficial oookbaaa/YRAWAH",
-            BatteryTray.Ui.AppInfo.UpdateFeed == "");
+            BatteryTray.Ui.AppInfo.UpdateFeed == "https://github.com/oookbaaa/YRAWAH");
         Check(@"atualizacao do YRAWAH Teste so de pasta local releases\teste",
             BatteryTray.Ui.AppInfo.TestFeedOrEmpty(@"D:\repo\releases\teste") == @"D:\repo\releases\teste"
             && BatteryTray.Ui.AppInfo.TestFeedOrEmpty("https://github.com/oookbaaa/YRAWAH") == ""

@@ -37,6 +37,12 @@ public partial class PanelWindow : Window
 
     public event Action? RefreshRequested;
 
+    /// <summary>YRAWAH: trocar o atalho. Devolve false se o Windows recusou (outro app usa).</summary>
+    public Func<string, bool>? HotKeyChangeRequested;
+    /// <summary>YRAWAH: gravando o atalho novo (o antigo nao pode fechar o painel no meio).</summary>
+    public event Action<bool>? HotKeyRecording;
+    private bool _recordingHotKey;
+
     /// <summary>Alguma configuracao mudou e ja foi salva.</summary>
     public event Action? SettingsChanged;
 
@@ -72,6 +78,55 @@ public partial class PanelWindow : Window
     /// Sistema/Solido recria o painel (TrayController).
     /// </summary>
     public bool IsLayered { get; }
+
+    private void StartRecordingHotKey(bool on)
+    {
+        _recordingHotKey = on;
+        HotKeyRecording?.Invoke(on);
+        if (on)
+        {
+            HotKeyText.Text = L.T("Aperte as teclas…", "Press keys…");
+            HotKeyHint.Text = L.T("Esc cancela · Backspace desliga o atalho", "Esc cancels · Backspace turns the shortcut off");
+            HotKeyHint.Foreground = (Brush)FindResource("Text.Tertiary");
+        }
+        else ShowHotKey(null);
+    }
+
+    private void ShowHotKey(string? problem)
+    {
+        string combo = _settings.HotKey;
+        HotKeyText.Text = combo.Length == 0 ? L.T("Desligado", "Off") : HotKey.Display(combo);
+        HotKeyHint.Text = problem
+            ?? (combo.Length == 0 ? L.T("Clique para escolher um atalho", "Click to choose a shortcut")
+                : HotKey.IsBare(combo) ? L.T("Sem Ctrl/Alt/Shift/Win, esta tecla para de funcionar nos outros apps", "Without Ctrl/Alt/Shift/Win, this key stops working in other apps")
+                : L.T("Abre e fecha o painel de qualquer lugar. Clique para trocar", "Opens and closes the panel from anywhere. Click to change"));
+        HotKeyHint.Foreground = (Brush)FindResource(problem is not null || HotKey.IsBare(combo) && combo.Length > 0 ? "Level.Alert" : "Text.Tertiary");
+    }
+
+    private void OnRecordHotKey(object sender, KeyEventArgs e)
+    {
+        if (!_recordingHotKey) return;
+        e.Handled = true; // nem Esc fecha o painel, nem a tecla vai para outro controle
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        var mods = Keyboard.Modifiers;
+        if (key == Key.Escape && mods == ModifierKeys.None) { StartRecordingHotKey(false); return; }
+
+        string? combo = key is Key.Back or Key.Delete && mods == ModifierKeys.None ? ""
+            : HotKey.Format(mods, key, Keyboard.IsKeyDown(Key.LWin) || Keyboard.IsKeyDown(Key.RWin));
+        if (combo is null) return; // so modificador ainda: espera a tecla
+
+        _recordingHotKey = false;
+        HotKeyRecording?.Invoke(false);
+        bool ok = HotKeyChangeRequested?.Invoke(combo) ?? false;
+        if (ok)
+        {
+            _settings.HotKey = combo;
+            _settings.Save();
+            SettingsChanged?.Invoke();
+            ShowHotKey(null);
+        }
+        else ShowHotKey(L.T($"{HotKey.Display(combo)} já é usado por outro app; escolha outro", $"{HotKey.Display(combo)} is already used by another app; choose another"));
+    }
 
     private void RefreshMixer()
     {
@@ -153,6 +208,9 @@ public partial class PanelWindow : Window
         };
         _outsideCheck.Tick += (_, _) => CheckOutside();
         KeyDown += (_, e) => { if (e.Key == Key.Escape) Dismiss(); };
+        PreviewKeyDown += OnRecordHotKey;
+        HotKeyButton.Click += (_, _) => StartRecordingHotKey(!_recordingHotKey);
+        UpdateBannerButton.Click += (_, _) => UpdateRequested?.Invoke();
         SizeChanged += (_, _) => PlaceNearTray();
 
         SourceInitialized += (_, _) =>
@@ -330,6 +388,13 @@ public partial class PanelWindow : Window
     }
 
     /// <summary>O texto e o estado do botao de atualizacao, ditos pelo atualizador.</summary>
+    /// <summary>YRAWAH: faixa "versao nova pronta" no topo do painel; null esconde.</summary>
+    public void ShowUpdateReady(string? version)
+    {
+        UpdateBanner.Visibility = version is null ? Visibility.Collapsed : Visibility.Visible;
+        if (version is not null) UpdateBannerTitle.Text = L.T($"YRAWAH {version} está pronto", $"YRAWAH {version} is ready");
+    }
+
     public void SetUpdateStatus(string text, bool enabled)
     {
         UpdateText.Text = text;
@@ -352,6 +417,7 @@ public partial class PanelWindow : Window
             PlaceOff.IsChecked = _settings.NotifyPlace == "off";
             SoundSwitch.IsChecked = _settings.NotifySound;
             MixerSwitch.IsChecked = _settings.ShowMixer;
+            ShowHotKey(null);
             ListenOnlySwitch.IsChecked = _settings.ListenOnly;
             ThresholdSlider.Value = _settings.LowBatteryThreshold;
             ThresholdValue.Text = $"{_settings.LowBatteryThreshold}%";

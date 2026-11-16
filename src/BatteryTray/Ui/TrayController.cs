@@ -121,7 +121,11 @@ public sealed class TrayController : IDisposable
             _bluetoothTimer.Tick += (_, _) => RefreshLive(passive: false, bluetooth: true, notify: true);
             _bluetoothTimer.Start();
 
-            try { _hotKey = new HotKey(() => _panel.Toggle()); }
+            try
+            {
+                _hotKey = new HotKey(() => _panel.Toggle());
+                if (!_hotKey.Set(_settings.HotKey)) Log.Write($"Atalho salvo {_settings.HotKey} indisponivel.");
+            }
             catch (Exception ex) { Log.Error("Atalho", ex); }
 
             try
@@ -273,9 +277,15 @@ public sealed class TrayController : IDisposable
         panel.NotifySampleRequested += ShowNotifySample;
         panel.AllowRequested += Allow;
         panel.UpdateRequested += () => { if (_pendingUpdate is not null) ApplyUpdate(); else CheckForUpdates(quiet: true, fromPanel: true); };
-        if (_pendingUpdate is not null) panel.SetUpdateStatus(L.T($"Reiniciar e atualizar para {_pendingUpdate.TargetFullRelease.Version}", $"Restart and update to {_pendingUpdate.TargetFullRelease.Version}"), true);
+        if (_pendingUpdate is not null)
+        {
+            panel.SetUpdateStatus(L.T($"Reiniciar e atualizar para {_pendingUpdate.TargetFullRelease.Version}", $"Restart and update to {_pendingUpdate.TargetFullRelease.Version}"), true);
+            panel.ShowUpdateReady(_pendingUpdate.TargetFullRelease.Version.ToString());
+        }
         else if (_updates is null) panel.SetUpdateStatus(L.T("Só no app instalado", "Only in the installed app"), false);
         panel.RestartRequested += Restart;
+        panel.HotKeyChangeRequested = combo => _hotKey?.Set(combo) ?? false;
+        panel.HotKeyRecording += on => _hotKey?.Pause(on);
         panel.SettingsChanged += () =>
         {
             _alerted.Clear(); // limite novo: reavaliar do zero na proxima leitura
@@ -811,6 +821,7 @@ public sealed class TrayController : IDisposable
             if (AppInfo.IsTest) { ApplyUpdate(); return; }
             if (_updateItem is not null) _updateItem.Text = L.T($"Reiniciar e atualizar para {version}", $"Restart and update to {version}");
             _panel.SetUpdateStatus(L.T($"Reiniciar e atualizar para {version}", $"Restart and update to {version}"), true);
+            _panel.ShowUpdateReady(version);
             ShowBalloon(L.T("Atualização pronta", "Update ready"), L.T($"{AppInfo.Name} {version}: clique aqui para reiniciar e atualizar.", $"{AppInfo.Name} {version}: click here to restart and update."), Forms.ToolTipIcon.Info);
             _balloonIsUpdate = true;
         }
