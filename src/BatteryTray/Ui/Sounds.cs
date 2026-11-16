@@ -3,7 +3,7 @@ using System.Media;
 
 namespace BatteryTray.Ui;
 
-public enum Chime { Found, Low }
+public enum Chime { Found, Low, Off }
 
 /// <summary>
 /// Os toques dos avisos, sintetizados na hora (sem arquivo de audio), com as
@@ -22,6 +22,8 @@ public static class Sounds
     {
         [Chime.Found] = new(false, .1, .34, new[] { (660.0, 0.0), (990.0, .09), (1320.0, .2), (1760.0, .27) }), // "conectou" + "achei" numa frase
         [Chime.Low] = new(true, .11, .30, new[] { (784.0, 0.0), (622.0, .12), (784.0, .34), (622.0, .46) }),
+        // YRAWAH: desconectou/desligou, o "conectou" ao contrario e mais baixo (descendo, mais curto, mais suave).
+        [Chime.Off] = new(false, .08, .30, new[] { (1320.0, 0.0), (990.0, .09), (660.0, .19) }),
     };
 
     private static readonly Dictionary<Chime, SoundPlayer> Players = new();

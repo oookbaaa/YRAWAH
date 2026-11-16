@@ -485,6 +485,36 @@
             </Border>
         </DataTemplate>
 
+        <!-- YRAWAH: desligado atras do receptor plugado; mesma cara da linha principal, apagada, sem barra. -->
+        <DataTemplate x:Key="OffRow" DataType="{x:Type ui:OffItem}">
+            <Border Margin="0,0,0,2" Padding="12,10" CornerRadius="6" BorderThickness="1" Opacity="0.55"
+                    Background="{DynamicResource Card.Fill}" BorderBrush="{DynamicResource Card.Stroke}"
+                    ToolTip="{Binding Tooltip}" ToolTipService.InitialShowDelay="500">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="32" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid Width="32" Height="32">
+                        <Ellipse StrokeDashArray="3 2" StrokeThickness="1.5" Stroke="{DynamicResource Level.Track}" />
+                        <Viewbox Width="16" Height="16">
+                            <Path Style="{StaticResource Glyph}" Data="{Binding Icon}" Stroke="{DynamicResource Text.Tertiary}" />
+                        </Viewbox>
+                    </Grid>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" LineHeight="20" />
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0" Text="{Binding Line}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Border Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Center" CornerRadius="999" Padding="10,3"
+                            BorderThickness="1" BorderBrush="{DynamicResource Level.Track}">
+                        <TextBlock Text="{ui:Tr 'Desligado', 'Off'}" FontSize="12" Foreground="{DynamicResource Text.Secondary}" />
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
         <DataTemplate x:Key="OtherRow" DataType="{x:Type ui:OtherItem}">
             <Border x:Name="Bg" ui:Motion.Hover="{DynamicResource Card.FillHover}" ui:Motion.Press="0.985" Padding="12,8" CornerRadius="6" Background="Transparent" ToolTip="{Binding Reason}">
                 <Grid>
@@ -627,6 +657,7 @@
 
                         <ItemsControl x:Name="ConsentRows" Margin="8,0" ItemTemplate="{StaticResource ConsentRow}" />
                         <ItemsControl x:Name="Rows" Margin="8,0" ItemTemplate="{StaticResource DeviceRow}" />
+                        <ItemsControl x:Name="OffRows" Margin="8,0" ItemTemplate="{StaticResource OffRow}" />
 
                         <StackPanel x:Name="OthersBlock" Margin="8,8,8,0">
                             <Grid>

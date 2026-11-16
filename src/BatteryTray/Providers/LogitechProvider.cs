@@ -48,6 +48,9 @@ public sealed class LogitechProvider : IStandaloneProvider
     private static readonly TimeSpan AskTimeout = TimeSpan.FromMilliseconds(1500);
 
     /// <summary>Receptores conhecidos (lista do Solaar, base_usb.py).</summary>
+    /// <summary>Receptores HID++ conhecidos (o vigia de conexao escuta os avisos deles).</summary>
+    internal static bool IsReceiver(ushort pid) => Receivers.ContainsKey(pid);
+
     private static readonly Dictionary<ushort, string> Receivers = new()
     {
         [0xC548] = "Bolt",
@@ -158,7 +161,9 @@ public sealed class LogitechProvider : IStandaloneProvider
 
         var reply = Call(session, receiver, slot, known.BatteryIndex, known.BatteryFeature == FeatureUnified ? 1 : 0);
         if (reply.Timeout) return new(null, StopReceiver: true);
-        if (reply.Error10 is not null) return new(null, false); // dormiu entre a descoberta e agora
+        // Desligado (ou dormiu) desde a descoberta: o receptor responde erro 1.0. Fica no painel, apagado (YRAWAH).
+        if (reply.Error10 is not null)
+            return new(Entry(key, receiver, known.Name, BatteryReading.Off(L.T("desligado ou longe do receptor", "off or far from the receiver"))), false);
         if (reply.Data is null)
         {
             // Erro 2.0: o indice mudou (re-pareado com outro aparelho). Redescobre na proxima.
@@ -342,7 +347,7 @@ public sealed class LogitechProvider : IStandaloneProvider
                                                                && ((r[2] == spec.Index && r[3] == spec.FnSw) || r[2] is 0xFF or 0x8F), AskTimeout);
                 reading = reply is null
                     ? BatteryReading.NoData(L.T("não respondeu; ligue o fone e atualize", "didn’t answer; turn the headset on and refresh"))
-                    : ParseHeadset(reply, spec.Curve) ?? BatteryReading.NoData(L.T("fone desligado ou longe do receptor; ligue e atualize", "headset off or far from the receiver; turn it on and refresh"));
+                    : ParseHeadset(reply, spec.Curve) ?? BatteryReading.Off(L.T("fone desligado ou longe do receptor", "headset off or far from the receiver"));
             }
 
             yield return new DeviceEntry

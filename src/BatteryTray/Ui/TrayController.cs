@@ -65,6 +65,12 @@ public sealed class TrayController : IDisposable
     private readonly DispatcherTimer _arrivalSettle = new() { Interval = ReadingTurns.Settle };
     private readonly DispatcherTimer _devicesSettle = new() { Interval = TimeSpan.FromMilliseconds(2000) };
 
+    /// <summary>YRAWAH: avisos de liga/desliga dos receptores Logitech (so escuta).</summary>
+    private readonly Providers.LogitechLinkWatcher _links = new();
+    /// <summary>Espera o aviso assentar (o fone manda mais de um) e le uma vez so.</summary>
+    private readonly DispatcherTimer _linkSettle = new() { Interval = TimeSpan.FromMilliseconds(1500) };
+    private readonly HashSet<(ushort Vid, ushort Pid)> _linkPending = new();
+
     private OnboardingWindow? _onboarding;
     private SendDeviceWindow? _sendDevice;
     private TrayRingWindow? _trayRing;
@@ -122,6 +128,13 @@ public sealed class TrayController : IDisposable
             catch (Exception ex) { Log.Error("DeviceWatch", ex); }
             _arrivalSettle.Tick += (_, _) => { _arrivalSettle.Stop(); OnArrivalSettled(); };
             _devicesSettle.Tick += (_, _) => { _devicesSettle.Stop(); RefreshLive(passive: false, bluetooth: true, notify: true); };
+            _links.LinkChanged += (vid, pid) => _ui.BeginInvoke(() =>
+            {
+                _linkPending.Add((vid, pid));
+                _linkSettle.Stop();
+                _linkSettle.Start();
+            });
+            _linkSettle.Tick += (_, _) => { _linkSettle.Stop(); OnLinkSettled(); };
         }
 
         if (_demo is null)
@@ -430,10 +443,42 @@ public sealed class TrayController : IDisposable
         RefreshLive(passive: true, bluetooth: false);
     }
 
+    private void OnLinkSettled()
+    {
+        var previous = _last;
+        if (previous is null || _linkPending.Count == 0) { _linkPending.Clear(); return; }
+        if (!_turns.TryStartLive()) { _linkSettle.Start(); return; } // outra leitura em curso: tenta de novo daqui a pouco
+        var links = _linkPending.ToList();
+        _linkPending.Clear();
+
+        Task.Run(() =>
+        {
+            var r = previous;
+            foreach (var (vid, pid) in links) r = _service.ReadLinkChange(r, vid, pid) ?? r;
+            return r;
+        }).ContinueWith(task =>
+        {
+            var result = task.IsFaulted ? null : task.Result;
+            _ui.BeginInvoke(() =>
+            {
+                try
+                {
+                    if (result is not null && !ReferenceEquals(result, previous) && ReferenceEquals(_last, previous)) ApplyResult(result, notify: true);
+                }
+                catch (Exception ex) { Log.Error("Link.Continue", ex); }
+                finally { EndLive(); }
+            });
+        }, TaskScheduler.Default);
+    }
+
     private void ApplyResult(RefreshResult result, bool notify = false)
     {
         var before = _last;
         _last = result;
+        if (_demo is null)
+        {
+            try { _links.Ensure(_service.LastCollections); } catch (Exception ex) { Log.Error("LinkWatcher.Ensure", ex); }
+        }
         _panel.ShowResult(result);
         _widget.ShowResult(result);
         UpdateTrayIcon(result);
@@ -651,6 +696,12 @@ public sealed class TrayController : IDisposable
             if ((now.TryGetValue(o.Key, out var n) && n.IsConnected) || arrived.Contains(o.Key)) continue;
             Announce(new Notice(o.Key, o.DisplayName, o.Kind, NoticeKind.Disconnected));
         }
+        // YRAWAH: desligou atras do receptor (que continua plugado): o mesmo aviso de desconectado.
+        foreach (var d in now.Values.Where(d => d.IsOff))
+        {
+            if (!old.TryGetValue(d.Key, out var o) || o.IsOff || !o.IsConnected) continue;
+            Announce(new Notice(d.Key, d.DisplayName, d.Kind, NoticeKind.Disconnected));
+        }
     }
 
     /// <summary>
@@ -817,6 +868,8 @@ public sealed class TrayController : IDisposable
         _updateTimer.Stop();
         _arrivalSettle.Stop();
         _devicesSettle.Stop();
+        _linkSettle.Stop();
+        _links.Dispose();
         _watch?.Dispose();
         try { _service.Dispose(); } catch { }
         try { _tray.Dispose(); } catch { }

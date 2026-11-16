@@ -199,6 +199,62 @@ public sealed class ReadingService : IDisposable
         finally { _oneAtATime.Release(); }
     }
 
+    /// <summary>Colecoes vistas na ultima varredura (o vigia de conexao Logitech escuta parte delas).</summary>
+    public IReadOnlyList<HidCollection> LastCollections => _lastCollections;
+
+    /// <summary>
+    /// YRAWAH: um receptor avisou que o aparelho atras dele ligou ou desligou
+    /// (o receptor continua plugado, entao o Windows nao avisa nada). Le UMA vez
+    /// so os providers desse VID:PID, sobre as colecoes ja conhecidas, como o
+    /// aviso de conexao. Null = nada desse receptor, ou outra leitura em curso.
+    /// </summary>
+    public RefreshResult? ReadLinkChange(RefreshResult previous, ushort vid, ushort pid)
+    {
+        if (!_oneAtATime.Wait(0)) return null;
+        try
+        {
+            var mine = _lastCollections.Where(c => c.Vid == vid && c.Pid == pid).ToList();
+            if (mine.Count == 0) return null;
+            HidRequest.NewReading(_settings.ListenOnly, _settings.AskAllowedVids);
+
+            var replaced = new Dictionary<string, DeviceEntry>(StringComparer.OrdinalIgnoreCase);
+            foreach (var s in _registry.StandaloneProviders.Where(s => s is not Providers.BluetoothPnpProvider && s.Handles(vid, pid)))
+            {
+                try
+                {
+                    foreach (var entry in s.Discover(mine).ToList())
+                    {
+                        _cache.Update(entry.Key, entry.DisplayName, entry.HardwareId, entry.Reading);
+                        entry.Cache = _cache.Get(entry.Key);
+                        replaced[entry.Key] = entry;
+                        Log.Write($"  {entry.DisplayName}: {Describe(entry.Reading)}{(entry.IsOff ? " (desligado)" : "")}");
+                    }
+                }
+                catch (Exception ex) { Log.Error($"{s.Name}.Link", ex); }
+            }
+            if (replaced.Count == 0) return null;
+            _cache.Save();
+
+            // O placeholder "receptor sem aparelho" sai quando o aparelho aparece, e vice-versa: troca tudo deste receptor.
+            string hw = Known.Id(vid, pid);
+            var devices = previous.Devices
+                .Where(d => !replaced.ContainsKey(d.Key) && !(d.IsConnected && d.HardwareId.Split(", ").Contains(hw, StringComparer.OrdinalIgnoreCase)))
+                .Concat(replaced.Values).ToList();
+            devices.Sort(CompareForDisplay);
+
+            var before = previous.Devices.GroupBy(d => d.Key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            var arrivedKeys = replaced.Values.Where(e => e.ShowsBattery && (!before.TryGetValue(e.Key, out var o) || !o.ShowsBattery))
+                .Select(e => e.Key).ToList();
+            return new RefreshResult { Devices = devices, WhenUtc = DateTime.UtcNow, FatalError = previous.FatalError, Arrived = arrivedKeys };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("ReadLinkChange", ex);
+            return null;
+        }
+        finally { _oneAtATime.Release(); }
+    }
+
     /// <summary>
     /// Colecoes HID sairam: o aparelho que ficou sem nenhuma colecao vira
     /// "desconectado". Nao toca em nada (regra 2: aparelho sumiu, parar de

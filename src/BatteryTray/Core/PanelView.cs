@@ -31,6 +31,9 @@ public sealed record DeviceRowView(
 /// <summary>Uma linha de "outros": plugado, sem valor, com o motivo.</summary>
 public sealed record OtherRowView(string Key, string Name, DeviceKind Kind, string Reason);
 
+/// <summary>YRAWAH: aparelho desligado atras de um receptor plugado, com o ultimo valor conhecido.</summary>
+public sealed record OffRowView(string Key, string Name, DeviceKind Kind, string Origin, string? Last, string Tooltip);
+
 /// <summary>Plugado, sem valor, de marca esperando licenca: fica a vista com "Permitir" (2026-11-12).</summary>
 public sealed record ConsentRowView(string Key, string Name, DeviceKind Kind, string Vid);
 
@@ -49,6 +52,21 @@ public static class PanelView
         var rows = devices.Where(d => d.ShowsBattery).Select(d => Row(d, threshold, nowUtc)).ToList();
         rows.Sort(Compare);
         return rows;
+    }
+
+    /// <summary>Desligados (o receptor continua plugado), por nome, para o fim da lista.</summary>
+    public static List<OffRowView> OffRows(IEnumerable<DeviceEntry> devices, DateTime nowUtc) =>
+        devices.Where(d => d.IsOff)
+            .Select(d => new OffRowView(d.Key, d.DisplayName, d.Kind, d.Origin, LastSeen(d, nowUtc), Tooltip(d)))
+            .OrderBy(o => o.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+    /// <summary>"85% · há 2 h": o ultimo valor do cache, se houver.</summary>
+    internal static string? LastSeen(DeviceEntry d, DateTime nowUtc)
+    {
+        if (d.Cache is not { HasValue: true } c) return null;
+        string? value = c.Percent is int p ? $"{p}%" : c.Level is { Length: > 0 } l ? Known.LevelLabelPtBr(l) : null;
+        return value is null ? null : $"{value} · {Age(nowUtc - c.TimestampUtc)}";
     }
 
     // shortcut: a licenca e' por VID, entao um aparelho Bluetooth sem valor da mesma marca tambem pede "Permitir"; separar por transporte se aparecer na pratica.

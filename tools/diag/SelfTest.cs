@@ -406,6 +406,24 @@ internal static class SelfTest
         Check("logi outro slot nao casa", LogitechProvider.MatchReply(ask, B(0x11, 0x03, 0x00, 0x0D, 0x06, 0x00, 0x03)) is null);
         Check("logi notificacao (swid 0) nao casa", LogitechProvider.MatchReply(ask, B(0x11, 0x02, 0x00, 0x00, 0x06, 0x00, 0x03)) is null);
         Eq("logi 1004 percentual", 64, LogitechProvider.ParseUnified(B(64, 0x04, 0x00, 0x00)).Percent);
+        // YRAWAH: aparelho desligado atras do receptor plugado.
+        Check("vigia: fone ligou", LogitechLinkWatcher.IsCenturionLinkEvent(B(0x51, 0x05, 0x00, 0x02, 0x00, 0x00, 0x01)));
+        Check("vigia: fone desligou", LogitechLinkWatcher.IsCenturionLinkEvent(B(0x51, 0x05, 0x00, 0x02, 0x00, 0x00, 0x00)));
+        Check("vigia: resposta do root nao e' aviso", !LogitechLinkWatcher.IsCenturionLinkEvent(B(0x51, 0x05, 0x00, 0x00, 0x01, 0x02, 0x00)));
+        Check("vigia: ack da ponte nao e' aviso", !LogitechLinkWatcher.IsCenturionLinkEvent(B(0x51, 0x05, 0x00, 0x02, 0x11, 0x00, 0x00)));
+        Check("vigia: receptor 0x41", LogitechLinkWatcher.IsReceiverLinkEvent(B(0x10, 0x01, 0x41, 0x10, 0x40, 0x00, 0x00)));
+        Check("vigia: resposta de bateria nao e' aviso", !LogitechLinkWatcher.IsReceiverLinkEvent(B(0x11, 0x01, 0x06, 0x11, 0x55, 0x00, 0x00)));
+        var offEntry = new DeviceEntry { Key = "logitech:0AF7", DisplayName = "Fone", HardwareId = "046D:0AF7", ProviderName = "Logitech",
+            Reading = BatteryReading.Off("desligado"), IsConnected = true,
+            Cache = new CachedReading { Percent = 47, TimestampUtc = DateTime.UtcNow.AddHours(-2) } };
+        Check("desligado nao entra na lista principal", !offEntry.ShowsBattery);
+        Check("desligado nao vai para outros", !offEntry.ShowsAsOther);
+        var offRows = PanelView.OffRows(new[] { offEntry }, DateTime.UtcNow);
+        Check("desligado vai para a lista de desligados", offRows.Count == 1);
+        Check("desligado mostra o ultimo valor", offRows.Count == 1 && offRows[0].Last is { } last && last.StartsWith("47%"));
+        var offUnplugged = new DeviceEntry { Key = "x", DisplayName = "x", HardwareId = "x", ProviderName = "x", Reading = BatteryReading.Off(), IsConnected = false };
+        Check("receptor tirado nao aparece como desligado", PanelView.OffRows(new[] { offUnplugged }, DateTime.UtcNow).Count == 0);
+
         // Centurion (G PRO X 2 LIGHTSPEED), bytes como no HeadsetControl.
         Check("centurion pergunta da ponte", LogitechCenturion.DirectFrame(0x00, 0x00, 0x00, 0x03).Take(7).SequenceEqual(B(0x51, 0x05, 0x00, 0x00, 0x01, 0x00, 0x03)));
         Check("centurion pergunta pela ponte", LogitechCenturion.BridgeFrame(0x02, 0x00, 0x00, 0x01, 0x04).Take(12).SequenceEqual(B(0x51, 0x0A, 0x00, 0x02, 0x11, 0x00, 0x05, 0x00, 0x00, 0x01, 0x01, 0x04)));

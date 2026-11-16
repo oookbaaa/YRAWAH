@@ -45,6 +45,12 @@ public sealed class BatteryReading
     /// <summary>"carregando" / "carga completa" quando o aparelho informa, junto do percentual.</summary>
     public string? ChargeText { get; init; }
 
+    /// <summary>
+    /// YRAWAH: o receptor esta plugado mas o aparelho atras dele esta
+    /// desligado (fone ou mouse por dongle). A linha fica no painel, apagada.
+    /// </summary>
+    public bool DeviceOff { get; init; }
+
     public static BatteryReading Percentage(int percent, string? detail = null, DateTime? observedUtc = null, string? chargeText = null) =>
         new() { Status = ReadingStatus.Ok, Percent = Math.Clamp(percent, 0, 100), Detail = detail, ObservedUtc = observedUtc, ChargeText = chargeText };
 
@@ -53,6 +59,10 @@ public sealed class BatteryReading
 
     public static BatteryReading Charging(string? detail = null) =>
         new() { Status = ReadingStatus.Charging, Detail = detail };
+
+    /// <summary>Aparelho desligado atras de um receptor que continua plugado.</summary>
+    public static BatteryReading Off(string? detail = null) =>
+        new() { Status = ReadingStatus.NoData, DeviceOff = true, Detail = detail };
 
     public static BatteryReading NoData(string? detail = null) =>
         new() { Status = ReadingStatus.NoData, Detail = detail };
@@ -179,7 +189,10 @@ public sealed class DeviceEntry
     /// Criterio da lista principal do painel: plugado agora E com bateria para
     /// mostrar.
     /// </summary>
-    public bool ShowsBattery => IsConnected && HasBatteryValue;
+    public bool ShowsBattery => IsConnected && HasBatteryValue && !IsOff;
+
+    /// <summary>YRAWAH: receptor plugado, aparelho desligado. Vai para a lista de desligados do painel.</summary>
+    public bool IsOff => IsConnected && Reading.DeviceOff;
 
     /// <summary>
     /// Criterio da secao "outros": esta plugado agora, mas nao tem valor para
@@ -189,7 +202,7 @@ public sealed class DeviceEntry
     /// continua no cache e volta assim que o aparelho voltar; o que nao faz
     /// sentido e' encher a lista de aparelho que nao esta ali.
     /// </summary>
-    public bool ShowsAsOther => IsConnected && !HasBatteryValue;
+    public bool ShowsAsOther => IsConnected && !HasBatteryValue && !IsOff;
 
     /// <summary>Percentual a exibir agora: o lido, ou o do cache se a leitura veio vazia.</summary>
     public int? EffectivePercent =>

@@ -510,10 +510,12 @@ public partial class PanelWindow : Window
         var main = PanelView.MainRows(devices, threshold, DateTime.UtcNow);
         var consent = PanelView.NeedConsent(devices, BatteryTray.Interop.HidRequest.WaitingVid);
         var others = PanelView.Others(devices, BatteryTray.Interop.HidRequest.WaitingVid);
+        var off = PanelView.OffRows(devices, DateTime.UtcNow);
 
         Rows.ItemsSource = main.Select(r => new RowItem(r, _busy && _examples is null, _spot == Spot.Others && r.IsStale ? _pulse : null)).ToList();
         ConsentRows.ItemsSource = consent.Select(c => new ConsentItem(c)).ToList();
         OtherRows.ItemsSource = others.Select(o => new OtherItem(o)).ToList();
+        OffRows.ItemsSource = off.Select(o => new OffItem(o)).ToList();
 
         // Cabecalho
         var low = main.Where(r => r.IsLow).ToList();
@@ -534,7 +536,7 @@ public partial class PanelWindow : Window
             Spin.BeginAnimation(RotateTransform.AngleProperty, null);
 
         // Vazio: com "outros", e' "nenhum com bateria" e a lista ja abre.
-        bool empty = main.Count == 0 && consent.Count == 0 && shown is not null;
+        bool empty = main.Count == 0 && consent.Count == 0 && off.Count == 0 && shown is not null;
         EmptyView.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         if (empty)
         {
@@ -646,6 +648,18 @@ public sealed class RowItem
     public Brush Seg2 { get; }
 
     internal static Brush R(string key) => (Brush)System.Windows.Application.Current.Resources[key];
+}
+
+/// <summary>YRAWAH: aparelho desligado atras do receptor, apagado, com o ultimo valor.</summary>
+public sealed class OffItem(OffRowView v)
+{
+    public string Name { get; } = v.Name;
+    public Geometry Icon { get; } = Icons.For(v.Kind);
+    /// <summary>"Dongle · last 85% · 2 h ago" (sem valor guardado, so a origem).</summary>
+    public string Line { get; } = v.Last is null
+        ? Known.OriginLabel(v.Origin)
+        : L.T($"{Known.OriginLabel(v.Origin)} · último {v.Last}", $"{Known.OriginLabel(v.Origin)} · last {v.Last}");
+    public string Tooltip { get; } = v.Tooltip;
 }
 
 public sealed class ConsentItem(ConsentRowView v)

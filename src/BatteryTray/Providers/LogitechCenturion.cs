@@ -70,7 +70,7 @@ internal static class LogitechCenturion
 
     private static BatteryReading ReadBattery(HidRequest session, HidCollection target)
     {
-        var off = BatteryReading.NoData(L.T("fone desligado ou longe do receptor; ligue e atualize", "headset off or far from the receiver; turn it on and refresh"));
+        var off = BatteryReading.Off(L.T("fone desligado ou longe do receptor", "headset off or far from the receiver"));
         var silent = BatteryReading.NoData(L.T("não respondeu; ligue o fone e atualize", "didn’t answer; turn the headset on and refresh"));
 
         if (!Indexes.TryGetValue(target.Path, out var idx))

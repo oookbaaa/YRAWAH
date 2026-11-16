@@ -20,7 +20,8 @@ public sealed record Notice(string Key, string Name, DeviceKind Kind, NoticeKind
     /// </summary>
     public Chime? Sound => What switch
     {
-        NoticeKind.Reading or NoticeKind.Disconnected or NoticeKind.Consent => null,
+        NoticeKind.Disconnected => Chime.Off, // YRAWAH: pedido do usuario, som tambem ao desconectar/desligar
+        NoticeKind.Reading or NoticeKind.Consent => null,
         _ when Low => Chime.Low,
         _ when Value is null => null,
         _ => Chime.Found,
