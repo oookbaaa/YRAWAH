@@ -65,6 +65,10 @@ public sealed class Settings
     public string NotifyPlace { get; set; } = "widget";
 
     /// <summary>Os cinco toques dos avisos (conectou, achei, nao achei, bateria baixa, desconectou).</summary>
+    /// <summary>Mixer de volume no painel (YRAWAH).</summary>
+    [JsonPropertyName("showMixer")]
+    public bool ShowMixer { get; set; } = true;
+
     [JsonPropertyName("notifySound")]
     public bool NotifySound { get; set; } = true;
 

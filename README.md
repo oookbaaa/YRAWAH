@@ -33,6 +33,9 @@ battery your wireless devices have left. It is free, open source and in
 - **Connect notice**: when a device turns on, YRAWAH shows its battery, on the
   widget or as a Windows notification, with sound if you want.
 - **Low battery alert**, with a limit you choose.
+- **Volume mixer**: master volume and one slider per app playing sound, right
+  in the panel. Click an app's icon to mute it; the mouse wheel moves a slider.
+  Can be turned off in Settings.
 - **English and Portuguese**: follows the Windows language, and you can switch
   in Settings.
 - **Summary after updating**: how many devices YRAWAH tracked and how many

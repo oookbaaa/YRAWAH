@@ -34,6 +34,9 @@ está em **beta**.
 - **Aviso ao conectar**: quando um aparelho liga, o YRAWAH mostra a bateria dele,
   no widget ou no aviso do Windows, com som se você quiser.
 - **Alerta de bateria baixa**, com o limite que você escolher.
+- **Mixer de volume**: volume geral e um slider por app tocando som, no
+  painel. Clique no ícone de um app para silenciar; a roda do mouse move o
+  slider. Dá para desligar em Configurações.
 - **Português e inglês**: segue o idioma do Windows, e dá para trocar nas
   Configurações.
 - **Resumo depois de atualizar**: quantos aparelhos o YRAWAH acompanhou e quantos

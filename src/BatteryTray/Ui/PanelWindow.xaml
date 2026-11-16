@@ -507,6 +507,41 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        <!-- Uma linha do mixer de volume: icone (clique silencia), nome, slider e valor. -->
+        <DataTemplate x:Key="MixerRow">
+            <Grid Margin="4,3" ToolTip="{Binding Name}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="32" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="34" />
+                </Grid.ColumnDefinitions>
+                <Button Style="{StaticResource IconButton}" Click="MixerMute_Click" ToolTip="{Binding MuteTip}"
+                        AutomationProperties.Name="{Binding MuteTip}" VerticalAlignment="Center">
+                    <Grid Width="24" Height="24">
+                        <Image Source="{Binding Icon}" Width="20" Height="20" Opacity="{Binding ContentOpacity}"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+                        <TextBlock Text="{Binding Glyph}" Visibility="{Binding GlyphVisibility}" Opacity="{Binding ContentOpacity}"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Border Visibility="{Binding MutedBadge}" Width="13" Height="13" CornerRadius="7"
+                                HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="{DynamicResource Card.Fill}">
+                            <TextBlock Text="&#xE74F;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="9"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
+                </Button>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"
+                               Foreground="{DynamicResource Text.Secondary}" />
+                    <Slider Style="{StaticResource AccentSlider}" Minimum="0" Maximum="100" Opacity="{Binding ContentOpacity}"
+                            Value="{Binding Volume, Mode=TwoWay}" PreviewMouseWheel="MixerSlider_Wheel"
+                            AutomationProperties.Name="{Binding Name}" />
+                </StackPanel>
+                <TextBlock Grid.Column="3" Text="{Binding VolumeText}" FontSize="12" VerticalAlignment="Bottom" Margin="0,0,0,2"
+                           HorizontalAlignment="Right" Foreground="{DynamicResource Text.Secondary}" />
+            </Grid>
+        </DataTemplate>
     </Window.Resources>
 
     <Border x:Name="Root">
@@ -610,6 +645,14 @@
                             </Grid>
                             <ItemsControl x:Name="OtherRows" ItemTemplate="{StaticResource OtherRow}" Margin="0,2,0,0" />
                         </StackPanel>
+
+                        <!-- Mixer de volume (YRAWAH): volume geral e um slider por app tocando som. -->
+                        <StackPanel x:Name="MixerBlock" Margin="8,12,8,0" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource GroupLabel}" Text="{ui:Tr 'Mixer de volume', 'Volume mixer'}" />
+                            <Border Style="{StaticResource Group}" Padding="4">
+                                <ItemsControl x:Name="MixerRows" ItemTemplate="{StaticResource MixerRow}" />
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
@@ -657,6 +700,14 @@
                                     <StackPanel>
                                         <TextBlock Text="{ui:Tr 'Avisar com bateria baixa', 'Warn on low battery'}" />
                                         <TextBlock Style="{StaticResource Caption}" Text="{ui:Tr 'No mesmo lugar dos avisos, uma vez por aparelho', 'In the same place as notifications, once per device'}" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Rule}" />
+                                <DockPanel Margin="14,12">
+                                    <ToggleButton x:Name="MixerSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" />
+                                    <StackPanel>
+                                        <TextBlock Text="{ui:Tr 'Mixer de volume', 'Volume mixer'}" />
+                                        <TextBlock Style="{StaticResource Caption}" Text="{ui:Tr 'Volume geral e de cada app, no painel', 'Master and per-app volume, in the panel'}" />
                                     </StackPanel>
                                 </DockPanel>
                                 <Border Style="{StaticResource Rule}" />

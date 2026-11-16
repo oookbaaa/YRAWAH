@@ -20,6 +20,9 @@ public partial class PanelWindow : Window
 
     private static readonly TimeSpan AutoCloseAfter = TimeSpan.FromSeconds(15);
     private readonly System.Windows.Threading.DispatcherTimer _outsideCheck = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    /// <summary>Mixer de volume: le o Windows so com o painel aberto (nao toca em aparelho HID).</summary>
+    private readonly VolumeMixer _mixer = new();
+    private readonly System.Windows.Threading.DispatcherTimer _mixerTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
     private DateTime _lastInsideAt;
     private bool _wasDown;
 
@@ -70,6 +73,32 @@ public partial class PanelWindow : Window
     /// </summary>
     public bool IsLayered { get; }
 
+    private void RefreshMixer()
+    {
+        if (!_settings.ShowMixer || !IsVisible)
+        {
+            _mixerTimer.Stop();
+            if (!_settings.ShowMixer) { _mixer.Rows.Clear(); MixerBlock.Visibility = Visibility.Collapsed; }
+            return;
+        }
+        _mixer.Refresh();
+        MixerBlock.Visibility = _mixer.Rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (!_mixerTimer.IsEnabled) _mixerTimer.Start();
+    }
+
+    private void MixerMute_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is MixerRow row) row.Muted = !row.Muted;
+    }
+
+    /// <summary>Roda do mouse sobre um slider: 2 em 2, como no Windows, sem rolar o painel.</summary>
+    private void MixerSlider_Wheel(object sender, MouseWheelEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not MixerRow row) return;
+        row.Volume += e.Delta > 0 ? 2 : -2;
+        e.Handled = true;
+    }
+
     public PanelWindow(Settings settings)
     {
         _settings = settings;
@@ -102,6 +131,8 @@ public partial class PanelWindow : Window
         BackButton.Click += (_, _) => ShowSettings(false);
         WireSettings();
         OthersToggle.Click += (_, _) => { _othersOpen = !_othersOpen; Render(); };
+        MixerRows.ItemsSource = _mixer.Rows;
+        _mixerTimer.Tick += (_, _) => RefreshMixer();
 
         // Fechar (recriacao ao trocar de aparencia) tambem desativa: esconder
         // uma janela que esta fechando lanca InvalidOperationException.
@@ -114,7 +145,8 @@ public partial class PanelWindow : Window
         };
         IsVisibleChanged += (_, _) =>
         {
-            if (!IsVisible) { ShowSettings(false); _outsideCheck.Stop(); return; }
+            if (!IsVisible) { ShowSettings(false); _outsideCheck.Stop(); _mixerTimer.Stop(); return; }
+            RefreshMixer();
             _lastInsideAt = DateTime.UtcNow;
             _wasDown = Native.AnyMouseButtonDown();
             _outsideCheck.Start();
@@ -319,6 +351,7 @@ public partial class PanelWindow : Window
             PlaceWindows.IsChecked = _settings.NotifyPlace == "windows";
             PlaceOff.IsChecked = _settings.NotifyPlace == "off";
             SoundSwitch.IsChecked = _settings.NotifySound;
+            MixerSwitch.IsChecked = _settings.ShowMixer;
             ListenOnlySwitch.IsChecked = _settings.ListenOnly;
             ThresholdSlider.Value = _settings.LowBatteryThreshold;
             ThresholdValue.Text = $"{_settings.LowBatteryThreshold}%";
@@ -408,6 +441,7 @@ public partial class PanelWindow : Window
         PlaceWindows.Checked += (_, _) => SetPlace("windows");
         PlaceOff.Checked += (_, _) => SetPlace("off");
         SoundSwitch.Click += (_, _) => Changed(() => _settings.NotifySound = SoundSwitch.IsChecked == true);
+        MixerSwitch.Click += (_, _) => { Changed(() => _settings.ShowMixer = MixerSwitch.IsChecked == true); RefreshMixer(); };
         ListenOnlySwitch.Click += (_, _) => Changed(() => _settings.ListenOnly = ListenOnlySwitch.IsChecked == true); // vale na proxima leitura
         BlurSwitch.Click += (_, _) => Changed(() =>
         {
